@@ -1,0 +1,62 @@
+---
+# if you want to run over all IPs in the inventory use "all", else use a group such as "web"
+- hosts: web
+  remote_user: ubuntu      # to connect using ubuntu user 
+  become: yes              # to use sudo
+  gather_facts: no         # disable gathering facts
+  vars: 
+    ansible_ssh_extra_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    My_dir: mohamed
+    file_path: index.html
+
+  tasks:
+    #Update system Repos
+    - name: apt update
+      apt:
+        update_cache: yes
+    
+    #Install Nginx
+    - name: install nginx
+      apt:
+        name: nginx
+        state: present
+
+    #Run Ngnix
+    - name: Ensure Nginx is running
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    #Create Dir
+    - name: Create Dir
+      file:
+        path: "/home/ubuntu/{{My_dir}}"
+        state: directory
+    
+    #List contain of directory
+    - name: Create a file with specified content
+      copy:
+        dest: "/home/ubuntu/{{My_dir}}/{{ file_path }}"
+        content: "Mohamed Gamal"
+        mode: '0644'
+
+    #List contain of directory
+    - name: List directory contents
+      command: "ls {{ My_dir }}"
+      register: results
+
+    - name: Display directory contents
+      debug:
+        var: results.stdout
+
+    #List contain of File
+    - name: Display file content
+      command: "cat /home/ubuntu/{{My_dir}}/{{ file_path }}"
+      register: file_output
+
+    - name: Show the content of the file
+      debug:
+        var: file_output.stdout
+
+    
